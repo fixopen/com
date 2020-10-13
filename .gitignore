@@ -1,3 +1,5 @@
 .vs/
 out/
 *.obj
+cmake-build-debug/
+.idea/
