@@ -1,11 +1,11 @@
-//#include <combaseapi.h> // for CLSIDFromProgID CLSID HRESULT SUCCEEDED LPOLESTR StringFromCLSID
-#include <ObjBase.h>
+// #include <combaseapi.h> // for CLSIDFromProgID CLSID HRESULT SUCCEEDED LPOLESTR StringFromCLSID
+// #include <ObjBase.h>
 
 #include "Utils.h"
-#include "Texts.h"
+// #include "Texts.h"
 
 namespace utils::Utils {
-    std::vector<unsigned short> const ToLittleEndian(unsigned short* pWords, int nFirstIndex, int nLastIndex) {
+    std::vector<unsigned short> ToLittleEndian(const unsigned short* const pWords, int nFirstIndex, int nLastIndex) {
         std::vector<unsigned short> result;
         result.reserve(nLastIndex - nFirstIndex);
         for (int index = nFirstIndex; index <= nLastIndex; ++index) {
@@ -15,19 +15,20 @@ namespace utils::Utils {
         return result;
     }
 
-    std::vector<unsigned short> const TrimSpace(std::vector<unsigned short> const& v) {
+    std::vector<unsigned short> TrimSpace(std::vector<unsigned short> const& v) {
         auto left = v.begin();
         while (*left == 0x20 && left != v.end()) {
             ++left;
         }
         auto right = v.rbegin();
+        left.base();
         while (*right == 0x20 && right != v.rend()) {
             ++right;
         }
         return std::vector<unsigned short>(left, right.base());
     }
 
-    std::wstring const ToWString(std::vector<unsigned short> const& v) {
+    std::wstring ToWString(std::vector<unsigned short> const& v) {
         std::wstring result;
         result.reserve(v.size());
         for (auto c : v) {
@@ -36,7 +37,7 @@ namespace utils::Utils {
         return result;
     }
 
-    std::wstring const ProgramIdToClassId(std::wstring const& programId) {
+    std::wstring ProgramIdToClassId(std::wstring const& programId) {
         std::wstring result;
         CLSID clsid;
         HRESULT hr = CLSIDFromProgID(programId.c_str(), &clsid);
@@ -57,15 +58,15 @@ namespace utils::Utils {
         int const C4 = 26;
     }
 
-    std::string const Encrypt(std::string const& plain, unsigned short key) {
+    std::string Encrypt(std::string const& plain, unsigned short key) {
         std::string result, str;
-        for (auto i = 0u; i < plain.length(); i++) {
-            char chr = plain.at(i) ^ (key >> 8);
+        for (char i : plain) {
+            char chr = i ^ (key >> 8);
             str.push_back(chr);
             key = (chr + key) * C1 + C2;
         }
-        for (auto i = 0u; i < str.length(); i++) {
-            char j = (BYTE)str.at(i);
+        for (auto j : str) {
+            // char j = (BYTE) str.at(i);
             char first = C3 + j / C4;
             char second = C3 + j % C4;
             result.push_back(first);
@@ -74,15 +75,15 @@ namespace utils::Utils {
         return result;
     }
 
-    std::string const Decrypt(std::string const& cipher, unsigned short key) {
+    std::string Decrypt(std::string const& cipher, unsigned short key) {
         std::string result, str;
         for (auto i = 0u; i < cipher.length() / 2; i += 2) {
-            char j = ((BYTE)cipher.at(2 * i) - C3) * C4;
-            j += ((BYTE)cipher.at(2 * i + 1) - C3);
+            char j = ((BYTE) cipher.at(2 * i) - C3) * C4;
+            j += ((BYTE) cipher.at(2 * i + 1) - C3);
             str += j;
         }
         for (auto i = 0u; i < str.length(); i++) {
-            char chr = (BYTE)str.at(i) ^ (key >> 8);
+            char chr = (BYTE) str.at(i) ^ (key >> 8);
             result.push_back(chr);
             key = (chr + key) * C1 + C2;
         }
